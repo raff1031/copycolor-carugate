@@ -26,8 +26,10 @@
   }
 
   // Aperto / chiuso adesso (ora di Roma)
-  // Orari: lunedì–venerdì 9:00–12:30 e 15:00–18:45, festivi nazionali chiuso.
+  // Orari: lunedì–giovedì 9:00–12:30 e 15:00–18:45, venerdì fino alle 18:30, festivi nazionali chiuso.
   var SLOTS = [[9 * 60, 12 * 60 + 30], [15 * 60, 18 * 60 + 45]];
+  var FRIDAY_SLOTS = [[9 * 60, 12 * 60 + 30], [15 * 60, 18 * 60 + 30]];
+  function slotsFor(date) { return date.getUTCDay() === 5 ? FRIDAY_SLOTS : SLOTS; }
   var FIXED_HOLIDAYS = ["01-01", "01-06", "04-25", "05-01", "06-02", "08-15", "11-01", "12-08", "12-25", "12-26"];
   var DAYS = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
 
@@ -68,12 +70,13 @@
   function statusText() {
     var now = romeNow();
     if (isWorkday(now.date)) {
-      for (var s = 0; s < SLOTS.length; s++) {
-        if (now.minutes >= SLOTS[s][0] && now.minutes < SLOTS[s][1]) {
-          return { open: true, text: "Aperto ora, fino alle " + hhmm(SLOTS[s][1]) };
+      var today = slotsFor(now.date);
+      for (var s = 0; s < today.length; s++) {
+        if (now.minutes >= today[s][0] && now.minutes < today[s][1]) {
+          return { open: true, text: "Aperto ora, fino alle " + hhmm(today[s][1]) };
         }
-        if (now.minutes < SLOTS[s][0]) {
-          return { open: false, text: "Chiuso ora, " + (s === 0 ? "apre" : "riapre") + " alle " + hhmm(SLOTS[s][0]) };
+        if (now.minutes < today[s][0]) {
+          return { open: false, text: "Chiuso ora, " + (s === 0 ? "apre" : "riapre") + " alle " + hhmm(today[s][0]) };
         }
       }
     }
